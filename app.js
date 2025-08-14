@@ -1,24 +1,28 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const userRoutes = require('./routes/user-routes')
-const placeRoutes = require('./routes/place-routes')
+const userRoutes = require('./routes/users-routes');
+const placeRoutes = require('./routes/places-routes');
+const HttpError = require('./modules/http-error');
+
 
 const app = express();
 
-app.use('/users', userRoutes);
-app.use('/places', placeRoutes);
+app.use(bodyParser.json());
 
-app.use('/', (req, res, next) => {
-    res.send('<h1>Hello from Express! Empty route</h1>');
+app.use('/api/users', userRoutes);
+app.use('/api/places', placeRoutes);
+
+app.use((req, res, next) => {
+    return next(new HttpError('no routes found', 404));
 });
 
 app.use((error, req, res, next) => {
     if (res.headerSent) {
         return next(error);
-    }
+    };
 
     res.status(error.code || 500);
-    res.json({message: error.message || 'unknown error'});
+    res.json({ message: error.message || 'unknown error' });
 })
 
 app.listen(5001);
