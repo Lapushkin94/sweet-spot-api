@@ -1,5 +1,5 @@
 const express = require('express');
-
+const HttpError = require('../modules/http-error');
 const router = express.Router();
 
 const USERS = [
@@ -50,19 +50,32 @@ const PLACES = [
     },
 ];
 
-router.get('/allUsers', (req, res, next) => {
-    res.json({
-        message: 'I am all users',
-        allUsers: USERS
-    });
+router.get('/allPlaces', (req, res, next) => {
+    res.json({message: 'I am all places', allPlaces: PLACES});
 });
 
-router.get('/:userId', (req, res, next) => {
+router.get('/:placeId', (req, res, next) => {
+    const chosenPlace = PLACES.find(place => place.id === req.params.placeId);
+
+    if (!chosenPlace) {
+        return next(new HttpError('no places found', 404));
+    }
+
+    res.json({ message: 'I am a place', requestedPlaceId: req.params.placeId, foundPlace: chosenPlace });
+});
+
+router.get('/:userId/places', (req, res, next) => {
     const chosenUser = USERS.find(user => user.id === req.params.userId);
+
+    if (!chosenUser) {
+        return next(new HttpError('no places found for the user', 404));
+    }
+
     res.json({
         message: 'I am a user',
         requestedUserId: req.params.userId,
-        foundUser: chosenUser
+        foundUser: chosenUser,
+        userPlaces: PLACES.filter(place => place.creatorId === req.params.userId)
     });
 });
 
